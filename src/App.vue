@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted, watch } from "vue";
+import { ref, reactive, onMounted, watch, computed } from "vue";
 
 const LOCALSTORAGE_APP_KEY = "my-vue-app";
 const state = reactive({
@@ -33,6 +33,7 @@ function add() {
     id: crypto.randomUUID(),
     name: state.newValue,
     qty: count.value,
+    checked: false
   });
   state.newValue = "";
 }
@@ -43,6 +44,31 @@ function remove(item) {
     state.items.splice(index, 1);
   }
 }
+
+const total = computed(() => {
+  /*
+  let total = 0;
+  for (const el of state.items) {
+    total += el.qty;
+  }
+  return total;
+  */
+ console.log('calcule du total');
+ return state.items.reduce((total, el) => total + el.qty, 0);
+});
+
+const notCheckedItems = computed(() => {
+  return state.items.filter(el => !el.checked)
+})
+
+
+const checkedItems = computed(() => {
+  return state.items.filter(el => el.checked)
+})
+
+/*
+<input type="checkbox" v-model="item.checked" />
+*/
 
 const count = ref(1);
 </script>
@@ -74,11 +100,12 @@ const count = ref(1);
 
     <ul class="list-group">
       <li
-        v-for="item in state.items"
+        v-for="item in notCheckedItems"
         :key="item.id"
         class="list-group-item d-flex justify-content-between align-items-center"
       >
         <div class="d-flex align-items-center gap-3">
+          <input type="checkbox" v-model="item.checked" />
           <span class="badge bg-primary rounded-pill">{{ item.qty }}</span>
           <input v-model="item.name" class="form-control form-control-sm" style="max-width: 200px" />
         </div>
@@ -87,6 +114,28 @@ const count = ref(1);
         </button>
       </li>
     </ul>
+
+    <hr class="my-5" />
+
+    <ul class="list-group">
+      <li
+        v-for="item in checkedItems"
+        :key="item.id"
+        class="list-group-item d-flex justify-content-between align-items-center"
+      >
+        <div class="d-flex align-items-center gap-3">
+          <input type="checkbox" v-model="item.checked" />
+          <span class="badge bg-primary rounded-pill">{{ item.qty }}</span>
+          <input v-model="item.name" class="form-control form-control-sm" style="max-width: 200px" />
+        </div>
+        <button @click="remove(item)" class="btn btn-danger btn-sm">
+          <i class="fas fa-trash"></i>
+        </button>
+      </li>
+    </ul>
+    <div>
+      Total items: {{ total }}
+    </div>
   </div>
 </template>
 
