@@ -1,49 +1,11 @@
 <script setup>
-import { ref, reactive, onMounted, watch, computed } from "vue";
+import { ref, onMounted, computed } from "vue";
+import ShoppingListItem from "./components/ShoppingListItem.vue";
+import { state, remove, load, add} from "./state.js";
 
-const LOCALSTORAGE_APP_KEY = "my-vue-app";
-const state = reactive({
-  items: [],
-  newValue: "",
-});
 onMounted(() => {
   load();
 });
-watch(state, () => {
-  save();
-});
-function save() {
-  localStorage.setItem(LOCALSTORAGE_APP_KEY, JSON.stringify(state.items));
-}
-function load() {
-  let items = [];
-
-  const data = localStorage.getItem(LOCALSTORAGE_APP_KEY);
-  if (data) {
-    try {
-      items = JSON.parse(data);
-    } catch (e) {
-      console.error("Error parsing localStorage data", e);
-    }
-  }
-  state.items = items;
-}
-function add() {
-  state.items.push({
-    id: crypto.randomUUID(),
-    name: state.newValue,
-    qty: count.value,
-    checked: false
-  });
-  state.newValue = "";
-}
-
-function remove(item) {
-  const index = state.items.indexOf(item);
-  if (index > -1) {
-    state.items.splice(index, 1);
-  }
-}
 
 const total = computed(() => {
   /*
@@ -53,22 +15,27 @@ const total = computed(() => {
   }
   return total;
   */
- console.log('calcule du total');
- return state.items.reduce((total, el) => total + el.qty, 0);
+  console.log("calcule du total");
+  return state.items.reduce((total, el) => total + el.qty, 0);
 });
 
 const notCheckedItems = computed(() => {
-  return state.items.filter(el => !el.checked)
-})
-
+  return state.items.filter((el) => !el.checked);
+});
 
 const checkedItems = computed(() => {
-  return state.items.filter(el => el.checked)
-})
+  return state.items.filter((el) => el.checked);
+});
 
 /*
 <input type="checkbox" v-model="item.checked" />
 */
+
+function addItem() {
+  add(state.newValue, count.value);
+  state.newValue = "";
+  count.value = 1;
+}
 
 const count = ref(1);
 </script>
@@ -85,7 +52,7 @@ const count = ref(1);
         </div>
       </div>
       <div class="col-auto">
-        <button @click="add" :disabled="count <= 0 || state.newValue.trim() === ''" class="btn btn-success">
+        <button @click="addItem" :disabled="count <= 0 || state.newValue.trim() === ''" class="btn btn-success">
           <i class="fas fa-plus me-1"></i> Add
         </button>
       </div>
@@ -99,43 +66,15 @@ const count = ref(1);
     </div>
 
     <ul class="list-group">
-      <li
-        v-for="item in notCheckedItems"
-        :key="item.id"
-        class="list-group-item d-flex justify-content-between align-items-center"
-      >
-        <div class="d-flex align-items-center gap-3">
-          <input type="checkbox" v-model="item.checked" />
-          <span class="badge bg-primary rounded-pill">{{ item.qty }}</span>
-          <input v-model="item.name" class="form-control form-control-sm" style="max-width: 200px" />
-        </div>
-        <button @click="remove(item)" class="btn btn-danger btn-sm">
-          <i class="fas fa-trash"></i>
-        </button>
-      </li>
+      <shopping-list-item v-for="item in notCheckedItems" :key="item.id" :item="item" @remove="remove" />
     </ul>
 
     <hr class="my-5" />
 
     <ul class="list-group">
-      <li
-        v-for="item in checkedItems"
-        :key="item.id"
-        class="list-group-item d-flex justify-content-between align-items-center"
-      >
-        <div class="d-flex align-items-center gap-3">
-          <input type="checkbox" v-model="item.checked" />
-          <span class="badge bg-primary rounded-pill">{{ item.qty }}</span>
-          <input v-model="item.name" class="form-control form-control-sm" style="max-width: 200px" />
-        </div>
-        <button @click="remove(item)" class="btn btn-danger btn-sm">
-          <i class="fas fa-trash"></i>
-        </button>
-      </li>
+      <shopping-list-item v-for="item in checkedItems" :key="item.id" :item="item"  />
     </ul>
-    <div>
-      Total items: {{ total }}
-    </div>
+    <div>Total items: {{ total }}</div>
   </div>
 </template>
 
