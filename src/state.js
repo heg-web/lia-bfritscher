@@ -45,3 +45,4 @@ export function add(name, qty) {
   });
 }
 
+load();

@@ -3,9 +3,11 @@ import { ref, onMounted, computed } from "vue";
 import ShoppingListItem from "@/components/ShoppingListItem.vue";
 import { state, remove, load, add} from "@/state.js";
 
+/*
 onMounted(() => {
   load();
 });
+*/
 
 const total = computed(() => {
   /*
